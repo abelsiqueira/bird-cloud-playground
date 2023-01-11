@@ -6,15 +6,6 @@ import open3d as o3d
 import os
 from myaux import *
 
-# TODO: Move to myaux.py
-def create_df_from_input_files(input_files):
-    df = pd.read_csv(input_files[0])
-    for (i, file) in enumerate(input_files):
-        if i == 0:
-            continue
-        df = pd.concat([df, pd.read_csv(file)])
-    return df
-
 input_files = [
     'data/manual_annotations/NLDHL_pvol_20190416T1945_6234.h5.csv.gz',
     'data/manual_annotations/NLDHL_pvol_20190417T2100_6234.h5.csv.gz',
@@ -26,7 +17,7 @@ df = create_df_from_input_files(input_files)
 
 df['ISBIRD'] = ((1 <= df.CLASS) & (df.CLASS <= 32)).astype(int)
 feature_names = [
-    #'elevation', 'azimuth', 'range', 'x', 'y', 'z', # position-related
+    'elevation', 'azimuth', 'range', 'x', 'y', 'z', # position-related
     'DBZH', 'DBZV', 'TH', 'TV',
     'VRADH', 'VRADV',
 ]
@@ -92,6 +83,8 @@ def predict_on_file(test_file, clf):
 
     return df_vis
 
+#%%
+
 test_file = 'data/manual_annotations/NLDHL_pvol_20191024T2100_6234.h5.csv.gz'
 for model in info_models: # keys
     print(f'model {model}')
@@ -116,3 +109,5 @@ for model in info_models: # keys
         os.mkdir(outdir)
     outname = f'{model}.png'
     save_pcd_visualization(pcd, outdir, outname)
+
+# %%
