@@ -1,6 +1,7 @@
 import numpy as np
 import open3d as o3d
 import os
+import pandas as pd
 
 def normalize_to_01(v):
     minimum_value = v.min()
@@ -68,3 +69,11 @@ def smooth_biology(df, pcd, pcd_tree, radius = 5.0, num_required_bio = 10):
         if sum(df_clean.loc[idx, 'biology'] == 1) < num_required_bio:
             df_clean.loc[i,'new_biology'] = 0
     return df_clean
+
+def create_df_from_input_files(input_files):
+    df = pd.read_csv(input_files[0])
+    for (i, file) in enumerate(input_files):
+        if i == 0:
+            continue
+        df = pd.concat([df, pd.read_csv(file)])
+    return df
