@@ -1,0 +1,80 @@
+# Using https://github.com/tensorflow/gnn/blob/main/examples/schemas/takedown.pbtxt
+# as example
+
+node_sets {
+    key: "point"
+    value {
+        description: "Just a point"
+
+        features {
+            key: "x"
+            value: {
+                description: "x"
+                dtype: DT_FLOAT
+            }
+        }
+        features {
+            key: "y"
+            value: {
+                description: "y"
+                dtype: DT_FLOAT
+            }
+        }
+        features {
+            key: "z"
+            value: {
+                description: "z"
+                dtype: DT_FLOAT
+            }
+        }
+        features {
+            key: "useless_feature"
+            value: {
+                description: "useless_feature"
+                dtype: DT_FLOAT
+            }
+        }
+        features {
+            key: "feat1"
+            value: {
+                description: "feat1"
+                dtype: DT_FLOAT
+            }
+        }
+        features {
+            key: "feat2"
+            value: {
+                description: "feat2"
+                dtype: DT_FLOAT
+            }
+        }
+        features {
+            key: "feat3"
+            value: {
+                description: "feat3"
+                dtype: DT_FLOAT
+            }
+        }
+        features {
+            key: "class"
+            value: {
+                description: "class"
+                dtype: DT_STRING
+            }
+        }
+    }
+}
+
+edge_sets {
+    key: "connections"
+    value {
+        features {
+            key: "distance"
+            value: {
+                dtype: DT_FLOAT
+            }
+        }
+        source: "point"
+        target: "point"
+    }
+}
