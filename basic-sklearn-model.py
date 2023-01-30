@@ -6,15 +6,6 @@ import open3d as o3d
 import os
 from myaux import *
 
-# TODO: Move to myaux.py
-def create_df_from_input_files(input_files):
-    df = pd.read_csv(input_files[0])
-    for (i, file) in enumerate(input_files):
-        if i == 0:
-            continue
-        df = pd.concat([df, pd.read_csv(file)])
-    return df
-
 input_files = [
     'data/manual_annotations/NLDHL_pvol_20190416T1945_6234.h5.csv.gz',
     'data/manual_annotations/NLDHL_pvol_20190417T2100_6234.h5.csv.gz',
