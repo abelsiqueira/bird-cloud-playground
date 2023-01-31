@@ -13,6 +13,26 @@ def neighbours(point, tree, radius):
     [num_neighbours, idx, distances] = tree.search_radius_vector_3d(point, radius)
     return num_neighbours, idx, distances
 
+def create_edges_from_tree(tree, radius):
+    df_edges = pd.DataFrame({
+        'source': pd.Series(dtype='int32'),
+        'target': pd.Series(dtype='int32'),
+        'distance': pd.Series(dtype='float')
+    })
+    for (i, p) in enumerate(pcd.points):
+        nn, idx, dists = neighbours(pcd.points[i], tree, radius)
+        df_tmp = pd.DataFrame({
+            'source': np.repeat(i, nn),
+            'target': idx,
+            'distance': dists,
+        })
+        df_edges = pd.concat((df_edges, df_tmp))
+    df_edges.reset_index(drop=True, inplace=True)
+    df_edges.drop(df_edges[df_edges.source == df_edges.target].index, inplace=True)
+    df_edges.reset_index(drop=True, inplace=True)
+
+    return df_edges
+
 def find_points_with_enough_neighbours(
     tree,
     radius,
@@ -56,6 +76,12 @@ pcd = create_pcd_from_attributes(df, 'class')
 visualize_pcd(pcd)
 #%%
 tree = create_tree_from_point_cloud(pcd)
+
+#%%
+df_edges = create_edges_from_tree(tree, 0.3)
+df_edges.to_csv('example_edges1.csv')
+
+#%%
 
 # %%
 neighbours(pcd.points[0], tree, 0.5)
