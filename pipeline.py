@@ -13,12 +13,26 @@ def neighbours(point, tree, radius):
     [num_neighbours, idx, distances] = tree.search_radius_vector_3d(point, radius)
     return num_neighbours, idx, distances
 
-def find_points_with_enough_neighbours(tree, radius, min_neighbors):
+def find_points_with_enough_neighbours(
+    tree,
+    radius,
+    min_neighbors,
+    max_neighbors = 1e6,
+    select_closest = True,
+    num_selected = -1,
+):
+    if select_closest and num_selected <= 0:
+        raise Exception("if select_closes, then num_selected must be > 0")
+
     output = {}
     for (i, p) in enumerate(pcd.points):
         nn, idx, dists = neighbours(p, tree, radius)
-        if nn >= min_neighbors:
-            output[i] = {'indexes': idx, 'distances': dists}
+        if nn >= min_neighbors and nn <= max_neighbors:
+            if select_closest:
+                output[i] = {
+                    'indexes': idx[:num_selected],
+                    'distances': dists[:num_selected]
+                }
     return output
 
 def define_label_from_neighbourhood(df, core_point, target, weight_decay = 1.0, cutoff = 0.5):
@@ -30,9 +44,9 @@ def define_label_from_neighbourhood(df, core_point, target, weight_decay = 1.0, 
 
     return
 
-def define_label_from_neighbourhood_for_all(df, core_points, target, *kwargs):
+def define_label_from_neighbourhood_for_all(df, core_points, target, **kwargs):
     for c in core_points:
-        define_label_from_neighbourhood(df, core_points[c], target, *kwargs)
+        define_label_from_neighbourhood(df, core_points[c], target, **kwargs)
 
 # %%
 df = pd.read_csv('example_data1.csv')
@@ -46,13 +60,27 @@ tree = create_tree_from_point_cloud(pcd)
 # %%
 neighbours(pcd.points[0], tree, 0.5)
 # %%
-core_points = find_points_with_enough_neighbours(tree, 0.3, 10)
-# %%
-for i in core_points:
-    np.asarray(pcd.colors)[core_points[i]['indexes'], 1:] = [0.5, 0.8]
+core_points = find_points_with_enough_neighbours(tree, 0.3, 10, num_selected=10)
 
 # %%
 define_label_from_neighbourhood_for_all(df, core_points, 'class', weight_decay = 0.5)
+
+# %%
+for i in core_points:
+    if core_points[i]['class'] == 1:
+        np.asarray(pcd.colors)[core_points[i]['indexes'], 1:] = [0.5, 0.8]
+    else:
+        np.asarray(pcd.colors)[core_points[i]['indexes'], 1:] = [0.8, 0.2]
+# The true 1 are red
+# The chosen as 1 have added green 0.5 and blue 0.8
+# The chosen as 0 have added green 0.6 and blue 0.2
+# - true 1 and chosen 1 are pink
+# - true 0 and chosen 1 are blue
+# - true 1 and chosen 0 are yellow/orange
+# - true 0 and chosen 0 are green
+# - true 1 and not chosen are red
+# - true 0 and not chosen are black
+
 
 # %%
 visualize_pcd(pcd)
