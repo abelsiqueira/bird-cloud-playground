@@ -1,10 +1,14 @@
 #%%
 import numpy as np
 import pandas as pd
-import open3d as o3d
-from myaux import *
+from scipy.spatial import KDTree
+# from myaux import *
 
 #%%
+def create_tree_from_df(df):
+    tree = KDTree(df.loc[:, ['x', 'y', 'z']])
+    return tree
+
 def create_tree_from_point_cloud(pcd):
     tree = o3d.geometry.KDTreeFlann(pcd)
     return tree
@@ -72,12 +76,15 @@ def cut_distant_points(df):
     return df.drop(df[np.logical_or(np.logical_or(df.range < 5000, df.range > 100000), df.z > 10000)].index)
 
 #%%
-
+# df = pd.read_csv('data/manual_annotations/NLDHL_pvol_20190416T1945_6234.h5.csv.gz')
 df = pd.read_csv('example_data1.csv')
 
 print(df.shape)
 df = cut_distant_points(df)
 print(df.shape)
+#%%
+
+tree = create_tree_from_df(df)
 
 #%%
 pcd = create_pcd_from_attributes(df, 'class')
