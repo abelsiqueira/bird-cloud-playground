@@ -68,8 +68,16 @@ def define_label_from_neighbourhood_for_all(df, core_points, target, **kwargs):
     for c in core_points:
         define_label_from_neighbourhood(df, core_points[c], target, **kwargs)
 
-# %%
+def cut_distant_points(df):
+    return df.drop(df[np.logical_or(np.logical_or(df.range < 5000, df.range > 100000), df.z > 10000)].index)
+
+#%%
+
 df = pd.read_csv('example_data1.csv')
+
+print(df.shape)
+df = cut_distant_points(df)
+print(df.shape)
 
 #%%
 pcd = create_pcd_from_attributes(df, 'class')
@@ -79,12 +87,8 @@ tree = create_tree_from_point_cloud(pcd)
 
 #%%
 df_edges = create_edges_from_tree(tree, 0.3)
-df_edges.to_csv('example_edges1.csv')
+# df_edges.to_csv('example_edges1.csv')
 
-#%%
-
-# %%
-neighbours(pcd.points[0], tree, 0.5)
 # %%
 core_points = find_points_with_enough_neighbours(tree, 0.3, 10, num_selected=10)
 
