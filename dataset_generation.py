@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import open3d as o3d
 from scipy.spatial import KDTree
 from math import ceil
@@ -66,7 +65,7 @@ def generate_data(
     df['neighbours'] = df.apply(lambda row: len(tree.query_ball_point(row[['x', 'y', 'z']], 300)), axis=1)
     # df['neighbours'] = df.apply(lambda row: (distance_matrix[row.name,:] > 0).sum(), axis=1)
     aux = (df['neighbours'] > 5).astype('int32')
-    df['class'] = np.round(sigmoid(0.5 * hidden1 + 0.2 * hidden2 + 3 * aux))
+    df['class'] = np.round(sigmoid(0.5 * hidden1 + 0.2 * hidden2 + 3 * aux) + np.random.randn(num_points) * 0.1)
 
     if add_na:
         df.loc[np.random.randint(0, num_points, num_points // 100), 'feat2'] = None
@@ -83,5 +82,13 @@ visualize_pcd(pcd)
 
 # %%
 df_examples = generate_data('example_data2.csv', add_na=True)
+
+# %%
+import os
+
+if not os.path.exists('example-dataset'):
+    os.mkdir('example-dataset')
+for i in range(0, 30):
+    generate_data('example-dataset/data{:03d}.csv'.format(i+1))
 
 # %%
