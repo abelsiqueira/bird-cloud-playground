@@ -1,4 +1,3 @@
-#%%
 import os
 os.environ['DGLBACKEND'] = 'pytorch'
 import torch
@@ -19,15 +18,15 @@ class RadarDataset(DGLDataset):
         self.labels = []
 
         data_folder = 'data/manual_annotations'
-        features = ['range','azimuth','elevation','x','y','z','DBZH','DBZV']
-        target = 'BIOLOGY'
+        self.features = ['range','azimuth','elevation','x','y','z','DBZH','DBZV']
+        self.target = 'BIOLOGY'
         max_distance = 500
         min_neighbours = 200
         # TODO: Expand to all files
         data_file = os.listdir(data_folder)[0]
         df = pd.read_csv(os.path.join(data_folder, data_file))
         df = df.drop(df[np.logical_or(df.range > 100000, np.logical_or(df.z > 10000, df.range < 5000))].index).reset_index(drop=True)
-        df_notna = df.drop(df[df[target].isna()].index).reset_index(drop=True)
+        df_notna = df.drop(df[df[self.target].isna()].index).reset_index(drop=True)
         tree = KDTree(df.loc[:, ['x', 'y', 'z']])
         tree_notna = KDTree(df_notna.loc[:, ['x', 'y', 'z']])
         distance_matrix = tree_notna.sparse_distance_matrix(tree, max_distance)
@@ -39,10 +38,13 @@ class RadarDataset(DGLDataset):
             local_tree = KDTree(df.loc[indexes, ['x', 'y', 'z']])
             D = local_tree.sparse_distance_matrix(local_tree, max_distance, output_type='coo_matrix')
             g = dgl.graph((D.row, D.col))
-            g.ndata["x"] = torch.tensor(df.loc[indexes, features].values)
+            # TODO: Better fillna
+            local_df = df.loc[indexes, self.features].fillna(0)
+            assert not np.any(np.isnan(local_df))
+            g.ndata["x"] = torch.tensor(local_df.values)
             g.edata["a"] = torch.tensor(D.data)
             self.graphs.append(g)
-            self.labels.append(df_notna.loc[p,target])
+            self.labels.append(df_notna.loc[p,self.target])
 
         self.labels = torch.LongTensor(self.labels)
 
@@ -51,6 +53,3 @@ class RadarDataset(DGLDataset):
 
     def __len__(self):
         return len(self.graphs)
-
-
-# %%
