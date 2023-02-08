@@ -1,40 +1,42 @@
-#%%
-from radar_dataset import RadarDataset
+from torch.utils.data.sampler import SubsetRandomSampler
+from dgl.dataloading import GraphDataLoader
+from dgl.nn import GraphConv
 
+import radar_dataset
 import os
-os.environ['DGLBACKEND'] = 'pytorch'
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 import dgl
 import dgl.data
+import importlib
+importlib.reload(radar_dataset)
 
-from torch.utils.data.sampler import SubsetRandomSampler
-from dgl.dataloading import GraphDataLoader
+os.environ['DGLBACKEND'] = 'pytorch'
+os.environ['TORCH'] = torch.__version__
 
-dataset = RadarDataset()
+dataset = radar_dataset.RadarDataset()
 # dataset = dgl.data.GINDataset('PROTEINS', self_loop=True)
 
 num_examples = len(dataset)
 num_train = int(num_examples * 0.8)
 
+# Sample elements randomly without replacement.
 train_sampler = SubsetRandomSampler(torch.arange(num_train))
 test_sampler = SubsetRandomSampler(torch.arange(num_train, num_examples))
 
 train_dataloader = GraphDataLoader(
-    dataset, sampler = train_sampler, batch_size=5, drop_last=False,
+    dataset, sampler=train_sampler, batch_size=5, drop_last=False,
 )
 test_dataloader = GraphDataLoader(
-    dataset, sampler = test_sampler, batch_size=5, drop_last=False,
+    dataset, sampler=test_sampler, batch_size=5, drop_last=False,
 )
 
-#%%
 it = iter(train_dataloader)
 batch = next(it)
 print(batch)
 
-#%%
 batched_graph, labels = batch
 print(
     "Number of nodes for each graph element in the batch:",
@@ -49,8 +51,7 @@ print(
 graphs = dgl.unbatch(batched_graph)
 print("The original graphs in the minibatch:")
 print(graphs)
-# %%
-from dgl.nn import GraphConv
+
 
 class GCN(nn.Module):
     def __init__(self, in_feats, h_feats, num_classes):
@@ -65,7 +66,7 @@ class GCN(nn.Module):
         g.ndata['h'] = h
         return dgl.mean_nodes(g, 'h')
 
-# %%
+
 model = GCN(len(dataset.features), 16, 2)
 # model = GCN(dataset.dim_nfeats, 16, dataset.gclasses)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
@@ -86,4 +87,3 @@ for batched_graph, labels in test_dataloader:
     num_tests += len(labels)
 
 print("Test accuracy:", num_correct / num_tests)
-# %%

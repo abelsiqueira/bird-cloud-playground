@@ -1,5 +1,6 @@
-#%%
+# %%
 import os
+
 os.environ['DGLBACKEND'] = 'pytorch'
 import torch
 import torch.nn as nn
@@ -8,7 +9,7 @@ import torch.nn.functional as F
 import dgl
 import dgl.data
 
-#%%
+# %%
 dataset = dgl.data.GINDataset("PROTEINS", self_loop=True)
 # %%
 print("Node feature dimensionality:", dataset.dim_nfeats)
@@ -52,6 +53,7 @@ print(graphs)
 # %%
 from dgl.nn import GraphConv
 
+
 class GCN(nn.Module):
     def __init__(self, in_feats, h_feats, num_classes):
         super(GCN, self).__init__()
@@ -64,6 +66,8 @@ class GCN(nn.Module):
         h = self.conv2(g, h)
         g.ndata["h"] = h
         return dgl.mean_nodes(g, "h")
+
+
 # %%
 model = GCN(dataset.dim_nfeats, 16, dataset.gclasses)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
